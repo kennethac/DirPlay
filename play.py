@@ -9,7 +9,9 @@ files = stdout.split("\n")
 path,patherr = (Popen("pwd",stdout=PIPE)).communicate()
 
 for song in files:
+#	song = song.replace("'","\'")
+#	song = song.replace('"','\"')
 #	os.system("afplay "+song)
 	location =  path[:-1]+"/"+song
 	print location	
-	os.system('afplay "'+location+'"')
+	os.system("afplay '"+location+"'")
