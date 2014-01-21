@@ -3,4 +3,4 @@ rm DirPlay
 echo "#!/usr/bin/python" >> DirPlay
 cat play2.py >> DirPlay
 chmod 744 DirPlay
-cp DirPlay ~/usr/bin/
+cp DirPlay ~/.usr/bin/
