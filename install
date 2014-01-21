@@ -1,6 +1,12 @@
 #!/bin/bash
+
+a=$1
+: ${a:="play2.py"}
+
+echo $a
+
 rm DirPlay
 echo "#!/usr/bin/python" >> DirPlay
-cat play2.py >> DirPlay
+cat $a  >> DirPlay
 chmod 744 DirPlay
 cp DirPlay ~/.usr/bin/

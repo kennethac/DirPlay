@@ -43,6 +43,7 @@ path,patherr = (Popen("pwd",stdout=PIPE)).communicate()
 
 def show_songs(songs, current):
 	height,width = stdscr.getmaxyx()
+	maxLength = width-3
 	space = height - 3
 	stdscr.clear()
 	low = current-(space/2)-1
@@ -56,7 +57,7 @@ def show_songs(songs, current):
                 line = songs[song]
                 if song == current:   
                         line = "* "+line
-                stdscr.addstr(song-low+3,0,line)
+                stdscr.addstr(song-low+3,0,line[:maxLength])
         stdscr.refresh()
 
 def playArray(a):
