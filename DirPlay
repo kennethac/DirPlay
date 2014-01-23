@@ -87,7 +87,7 @@ def die():
 
 
 def playArray(a):
-	global replay
+	global replay,files
 
 	if shuffle == True:
 		random.shuffle(a)
@@ -122,6 +122,12 @@ def playArray(a):
 				show_songs(a,it)
 				it += 1
 				show_prompt("Shuffled! "+promptHeader,promptLine)
+			elif input == ord("u"):
+				a = files
+				it = a.index(song)
+				show_songs(a,it)
+				it += 1
+				show_prompt("Original order restored. "+promptHeader,promptLine)
 			elif input == ord("r"):
 				replay = not(replay)
 				if replay == True:
