@@ -91,6 +91,7 @@ def playArray(a):
 	if shuffle == True:
 		random.shuffle(a)
 	it = 0
+	tarry = 0
 	while it < len(a):
 		song = a[it]
 #		os.system("afplay "+song)
@@ -99,6 +100,7 @@ def playArray(a):
 		show_songs(a,a.index(song))
 		player = Popen('afplay "'+location+'"',shell=True,stdout=PIPE)
 		it += 1
+		it -= tarry
 		playing = player.poll()
 		stdscr.timeout(10)
 		show_prompt(promptHeader, promptLine)
@@ -121,7 +123,7 @@ def playArray(a):
 				show_songs(a,it)
 				it += 1
 				show_prompt("Shuffled! "+promptHeader,promptLine)
-			elif input == ord("u"):
+			elif input == ord("u"): #broken; files apparently isn't deep copied!
 				a = files
 				it = a.index(song)
 				show_songs(a,it)
@@ -135,11 +137,38 @@ def playArray(a):
 					rM = "Off"
 				show_prompt("Replay set to "+rM+". "+promptHeader,promptLine)
 
+#			elif input == ord("t"):
+#				if tarry == 0:
+#					tarry = 1
+#					it -= 1
+#					show_prompt("Tarrying on this song. "+promptHeader,promptLine)
+#				else:
+#					tarry = 0
+#					show_prompt("Tarry off. "+promptHeader,promptLine)
+			### Skip/Go Back left right arrow keys
 			elif input == curses.KEY_RIGHT:
 				player.terminate()
 			elif input == curses.KEY_LEFT:
 				player.terminate()
 				it -= 2
+			elif input == curses.KEY_UP:
+				script = """
+					set theOutput to output volume of (get volume settings)
+					set theOutput to theOutput + 6.25
+					if theOutput > 100 then set theOutput to 100
+					set volume output volume (theOutput)
+					"""
+				os.system("osascript -e '"+script+"'")
+				show_prompt("Volume up. "+promptHeader,promptLine)
+			elif input == curses.KEY_DOWN:
+				script = """
+					set theOutput to output volume of (get volume settings)
+					set theOutput to theOutput - 6.25
+					if theOutput < 0 then set theOutput to 0
+					set volume output volume (theOutput)
+					"""
+				os.system("osascript -e '"+script+"'")
+				show_prompt("Volume down. "+promptHeader,promptLine)
 		playerO,playerE = player.communicate()
 		code = player.returncode
 		if code == -2:
