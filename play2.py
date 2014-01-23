@@ -4,10 +4,15 @@ from subprocess import Popen, PIPE
 import os
 import curses
 import random
+import time
 
 replay = False
 shuffle = False
 
+player = None;
+
+promptHeader = "Give command: "
+promptLine = "[a/b/c/d]: "
 
 if len(sys.argv) > 1:
 	args = sys.argv[1:]
@@ -44,7 +49,7 @@ path,patherr = (Popen("pwd",stdout=PIPE)).communicate()
 def show_songs(songs, current):
 	height,width = stdscr.getmaxyx()
 	maxLength = width-3
-	space = height - 3
+	space = height - 5
 	stdscr.clear()
 	low = current-(space/2)-1
 	if low<(space/2):
@@ -59,27 +64,97 @@ def show_songs(songs, current):
                         line = "* "+line
                 stdscr.addstr(song-low+3,0,line[:maxLength])
         stdscr.refresh()
+	return (height,width)
+
+def show_prompt(header,line):
+	height,width = stdscr.getmaxyx()
+	header = header + (" " * (width-len(header)))
+	line = line + (" " * (width-len(line)))
+	stdscr.addstr(height-2,0,header[:width-1])
+	stdscr.addstr(height-1,0,line[:width-1])
+	stdscr.refresh()
+
+def sane():
+	curses.echo()
+	curses.nocbreak()
+	curses.endwin()
+
+def die():
+	sane()
+	os.system("killall afplay && killall DirPlay")
+	sys.exit()
+
 
 def playArray(a):
+	global replay,files
+
 	if shuffle == True:
 		random.shuffle(a)
-	for song in a:
+	it = 0
+	while it < len(a):
+		song = a[it]
 #		os.system("afplay "+song)
 		location =  path[:-1]+"/"+song
 		location = location.replace('"','\\"')
 		show_songs(a,a.index(song))
-		x = os.system('afplay "'+location+'"')
+		player = Popen('afplay "'+location+'"',shell=True,stdout=PIPE)
+		it += 1
+		playing = player.poll()
+		stdscr.timeout(10)
+		show_prompt(promptHeader, promptLine)
+		while playing == None:
+			playing = player.poll()
+			curses.echo()
+			try:
+				input = stdscr.getch()
+			except:
+				continue
+
+			if input == ord("q"):
+				show_prompt("Quitting!: ","Why? ")
+				die()
+			elif input == ord("h"):
+				show_prompt("Saying hello! ","Goodbye? ")
+			elif input == ord("s"):
+				random.shuffle(a)
+				it = a.index(song)
+				show_songs(a,it)
+				it += 1
+				show_prompt("Shuffled! "+promptHeader,promptLine)
+			elif input == ord("u"):
+				a = files
+				it = a.index(song)
+				show_songs(a,it)
+				it += 1
+				show_prompt("Original order restored. "+promptHeader,promptLine)
+			elif input == ord("r"):
+				replay = not(replay)
+				if replay == True:
+					rM = "On"
+				else:
+					rM = "Off"
+				show_prompt("Replay set to "+rM+". "+promptHeader,promptLine)
+
+			elif input == curses.KEY_RIGHT:
+				player.terminate()
+			elif input == curses.KEY_LEFT:
+				player.terminate()
+				it -= 2
+		playerO,playerE = player.communicate()
+		code = player.returncode
+		if code == -2:
+			die()			
 
 if __name__ == "__main__":
 	stdscr = curses.initscr()
 	curses.noecho()
 	curses.cbreak()
+	stdscr.keypad(True)
 
 	try:
 		playArray(files)
-		if replay == True:
-			while 1:
-				playArray(files)
+		while replay == True:
+			playArray(files)
 	finally:
 		curses.echo()
 		curses.nocbreak()
